@@ -1,0 +1,162 @@
+{
+  "subject": "physics",
+  "subject_name": "上海中考物理",
+  "version": "1.0",
+  "exam_date": "2026-06-19",
+  "chapters": [
+    {
+      "idx": 1,
+      "title": "机械运动",
+      "icon": "🚗",
+      "color": "#5470c6",
+      "qcount": 4
+    },
+    {
+      "idx": 2,
+      "title": "声现象",
+      "icon": "🔊",
+      "color": "#91cc75",
+      "qcount": 3
+    },
+    {
+      "idx": 3,
+      "title": "物态变化",
+      "icon": "💧",
+      "color": "#73c0de",
+      "qcount": 4
+    },
+    {
+      "idx": 4,
+      "title": "光现象",
+      "icon": "💡",
+      "color": "#ee6666",
+      "qcount": 4
+    },
+    {
+      "idx": 5,
+      "title": "透镜及其应用",
+      "icon": "🔍",
+      "color": "#3ba272",
+      "qcount": 4
+    },
+    {
+      "idx": 6,
+      "title": "质量与密度",
+      "icon": "⚖️",
+      "color": "#fc8452",
+      "qcount": 3
+    },
+    {
+      "idx": 7,
+      "title": "力",
+      "icon": "💪",
+      "color": "#9a60b4",
+      "qcount": 3
+    },
+    {
+      "idx": 8,
+      "title": "运动和力",
+      "icon": "🏃",
+      "color": "#ea7ccc",
+      "qcount": 4
+    },
+    {
+      "idx": 9,
+      "title": "压强",
+      "icon": "🧱",
+      "color": "#5d7092",
+      "qcount": 5
+    },
+    {
+      "idx": 10,
+      "title": "浮力",
+      "icon": "🛟",
+      "color": "#6e7074",
+      "qcount": 5
+    },
+    {
+      "idx": 11,
+      "title": "功和机械能",
+      "icon": "⚙️",
+      "color": "#546570",
+      "qcount": 4
+    },
+    {
+      "idx": 12,
+      "title": "简单机械",
+      "icon": "🔧",
+      "color": "#c4ccd3",
+      "qcount": 4
+    },
+    {
+      "idx": 13,
+      "title": "热和能",
+      "icon": "🔥",
+      "color": "#f6c555",
+      "qcount": 4
+    },
+    {
+      "idx": 14,
+      "title": "内能的利用",
+      "icon": "♨️",
+      "color": "#fac858",
+      "qcount": 3
+    },
+    {
+      "idx": 15,
+      "title": "电流与电路",
+      "icon": "⚡",
+      "color": "#5ab1ef",
+      "qcount": 4
+    },
+    {
+      "idx": 16,
+      "title": "电压  电阻",
+      "icon": "🔋",
+      "color": "#ffb980",
+      "qcount": 4
+    },
+    {
+      "idx": 17,
+      "title": "欧姆定律",
+      "icon": "📐",
+      "color": "#3ba272",
+      "qcount": 5
+    },
+    {
+      "idx": 18,
+      "title": "电功率",
+      "icon": "💡",
+      "color": "#fcc36b",
+      "qcount": 5
+    },
+    {
+      "idx": 19,
+      "title": "生活用电",
+      "icon": "🏠",
+      "color": "#ee6666",
+      "qcount": 3
+    },
+    {
+      "idx": 20,
+      "title": "电与磁",
+      "icon": "🧲",
+      "color": "#73c0de",
+      "qcount": 4
+    },
+    {
+      "idx": 21,
+      "title": "信息的传递",
+      "icon": "📡",
+      "color": "#91cc75",
+      "qcount": 2
+    },
+    {
+      "idx": 22,
+      "title": "能源与可持续发展",
+      "icon": "🌱",
+      "color": "#5470c6",
+      "qcount": 2
+    }
+  ]
+}

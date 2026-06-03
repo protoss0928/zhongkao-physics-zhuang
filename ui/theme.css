@@ -1,0 +1,285 @@
+/* ============= 阿风 中考复习小程序 v1.0 =============
+   设计目标：移动优先 / 电脑/微信/PAD 通用
+   配色：物理=蓝调
+   ============================================== */
+
+:root {
+  --primary: #4f8cff;
+  --primary-dark: #2b6cdf;
+  --primary-light: #e8f0ff;
+  --success: #22c55e;
+  --error: #ef4444;
+  --warning: #f59e0b;
+  --bg: #f5f7fa;
+  --card: #ffffff;
+  --text: #1f2937;
+  --text-light: #6b7280;
+  --border: #e5e7eb;
+  --radius: 12px;
+  --radius-lg: 20px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+  --shadow: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+body { min-height: 100vh; line-height: 1.6; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input, textarea { font-family: inherit; }
+
+/* ===== 容器 ===== */
+.app { max-width: 720px; margin: 0 auto; padding: 16px; min-height: 100vh; }
+@media (min-width: 800px) { .app { max-width: 760px; padding: 24px; } }
+
+/* ===== 顶部 Header ===== */
+.app-header {
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white; padding: 20px 16px; border-radius: var(--radius-lg);
+  margin-bottom: 16px; box-shadow: var(--shadow);
+}
+.app-header h1 { font-size: 22px; font-weight: 600; }
+.app-header .subtitle { opacity: 0.9; font-size: 14px; margin-top: 4px; }
+
+/* ===== 倒计时 ===== */
+.countdown {
+  background: linear-gradient(135deg, #f59e0b, #ef4444);
+  color: white; padding: 18px; border-radius: var(--radius-lg);
+  margin-bottom: 16px; text-align: center; box-shadow: var(--shadow);
+}
+.countdown .days { font-size: 48px; font-weight: 700; line-height: 1; }
+.countdown .label { font-size: 14px; opacity: 0.95; margin-top: 4px; }
+.countdown .exam-info { font-size: 12px; opacity: 0.85; margin-top: 6px; }
+
+/* ===== 用户选择 ===== */
+.user-bar {
+  display: flex; gap: 8px; align-items: center;
+  background: var(--card); padding: 10px 14px; border-radius: var(--radius);
+  margin-bottom: 12px; box-shadow: var(--shadow-sm);
+}
+.user-bar .user-list { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; }
+.user-pill {
+  padding: 6px 12px; border-radius: 20px; background: var(--bg);
+  font-size: 13px; cursor: pointer; border: 2px solid transparent;
+  transition: all 0.2s;
+}
+.user-pill.active { background: var(--primary); color: white; }
+.user-pill:hover:not(.active) { border-color: var(--primary); }
+.user-pill.add { background: var(--primary-light); color: var(--primary); }
+
+/* ===== 章节卡 ===== */
+.chapter-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px; margin-bottom: 16px;
+}
+.chapter-card {
+  background: var(--card); border-radius: var(--radius);
+  padding: 14px; text-align: center; cursor: pointer; box-shadow: var(--shadow-sm);
+  transition: all 0.2s; position: relative; overflow: hidden;
+}
+.chapter-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+.chapter-card .icon { font-size: 32px; margin-bottom: 4px; display: block; }
+.chapter-card .title { font-size: 13px; font-weight: 500; }
+.chapter-card .progress {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 4px;
+  background: var(--primary-light);
+}
+.chapter-card .progress .bar {
+  height: 100%; background: var(--primary); transition: width 0.3s;
+}
+.chapter-card .badge {
+  position: absolute; top: 6px; right: 6px; background: var(--success);
+  color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px;
+}
+
+/* ===== 按钮 ===== */
+.btn {
+  padding: 10px 20px; border-radius: var(--radius);
+  font-size: 14px; font-weight: 500; cursor: pointer;
+  transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-primary:disabled { background: var(--text-light); cursor: not-allowed; }
+.btn-secondary { background: var(--primary-light); color: var(--primary); }
+.btn-ghost { background: transparent; color: var(--text-light); }
+.btn-success { background: var(--success); color: white; }
+.btn-error { background: var(--error); color: white; }
+.btn-block { width: 100%; justify-content: center; }
+.btn-lg { padding: 14px 24px; font-size: 16px; }
+
+/* ===== 答题区 ===== */
+.quiz-screen { display: none; }
+.quiz-screen.active { display: block; }
+.screen { display: none; }
+.screen.active { display: block; }
+.quiz-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px; padding: 10px 14px; background: var(--card);
+  border-radius: var(--radius); box-shadow: var(--shadow-sm);
+}
+.quiz-progress { font-size: 13px; color: var(--text-light); }
+.quiz-score { font-size: 13px; color: var(--primary); font-weight: 600; }
+.question-card {
+  background: var(--card); border-radius: var(--radius-lg);
+  padding: 20px; box-shadow: var(--shadow); margin-bottom: 16px;
+}
+.question-meta { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+.tag {
+  font-size: 11px; padding: 2px 8px; border-radius: 10px; background: var(--primary-light); color: var(--primary);
+}
+.tag.fill { background: #fef3c7; color: #92400e; }
+.tag.choice { background: #dbeafe; color: #1e40af; }
+.question-stem { font-size: 16px; line-height: 1.7; margin-bottom: 16px; }
+
+/* 选择题选项 */
+.options { display: flex; flex-direction: column; gap: 8px; }
+.option {
+  padding: 12px 14px; background: var(--bg); border-radius: var(--radius);
+  border: 2px solid transparent; cursor: pointer; transition: all 0.2s;
+  display: flex; align-items: center; gap: 10px; font-size: 14px;
+}
+.option:hover { background: var(--primary-light); }
+.option.selected { background: var(--primary-light); border-color: var(--primary); }
+.option.correct { background: #d1fae5; border-color: var(--success); }
+.option.wrong { background: #fee2e2; border-color: var(--error); }
+.option.disabled { cursor: not-allowed; opacity: 0.7; }
+.option .letter { font-weight: 600; color: var(--text-light); width: 20px; }
+
+/* 填空题输入 */
+.fill-inputs { display: flex; flex-direction: column; gap: 12px; }
+.fill-input {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+.fill-input label { font-size: 14px; color: var(--text-light); }
+.fill-input input {
+  flex: 1; min-width: 100px; padding: 10px 12px; border: 2px solid var(--border);
+  border-radius: 8px; font-size: 14px; transition: border 0.2s;
+}
+.fill-input input:focus { outline: none; border-color: var(--primary); }
+.fill-input input.correct { border-color: var(--success); background: #d1fae5; }
+.fill-input input.wrong { border-color: var(--error); background: #fee2e2; }
+
+/* 答案反馈 */
+.feedback {
+  margin-top: 16px; padding: 14px; border-radius: var(--radius);
+  background: var(--primary-light); border-left: 4px solid var(--primary);
+}
+.feedback.correct { background: #d1fae5; border-color: var(--success); }
+.feedback.wrong { background: #fee2e2; border-color: var(--error); }
+.feedback h4 { font-size: 14px; margin-bottom: 6px; }
+.feedback p { font-size: 13px; color: var(--text); }
+.feedback .correct-answer {
+  display: inline-block; margin-top: 6px; padding: 4px 10px;
+  background: white; border-radius: 6px; font-weight: 600;
+  color: var(--primary-dark);
+}
+
+/* 操作区 */
+.quiz-actions {
+  display: flex; gap: 8px; justify-content: space-between; margin-top: 16px;
+}
+
+/* ===== 章节结算 ===== */
+.result-screen { display: none; }
+.result-screen.active { display: block; }
+.result-card {
+  background: var(--card); border-radius: var(--radius-lg);
+  padding: 30px 20px; text-align: center; box-shadow: var(--shadow); margin-bottom: 16px;
+}
+.result-icon { font-size: 64px; margin-bottom: 12px; }
+.result-score { font-size: 42px; font-weight: 700; color: var(--primary); }
+.result-text { color: var(--text-light); margin-top: 4px; }
+.result-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: center; flex-wrap: wrap; }
+
+/* ===== 工具栏 ===== */
+.toolbar {
+  display: flex; gap: 8px; align-items: center; padding: 10px 0;
+  border-top: 1px solid var(--border); margin-top: 20px;
+  justify-content: space-around;
+}
+.toolbar .spacer { display: none; }
+.icon-btn-wrap { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.icon-btn-wrap span { font-size: 10px; color: var(--text-light); }
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--card); display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-sm); cursor: pointer; font-size: 16px;
+  transition: all 0.2s;
+}
+.icon-btn:hover { transform: scale(1.05); }
+.icon-btn.off { opacity: 0.4; }
+
+/* ===== 模态框 ===== */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  display: none; align-items: center; justify-content: center;
+  z-index: 100; padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--card); border-radius: var(--radius-lg);
+  padding: 24px; max-width: 400px; width: 100%;
+}
+.modal h3 { font-size: 18px; margin-bottom: 12px; }
+.modal p { font-size: 14px; color: var(--text-light); margin-bottom: 16px; }
+.modal input {
+  width: 100%; padding: 10px 12px; border: 2px solid var(--border);
+  border-radius: 8px; font-size: 14px; margin-bottom: 12px;
+}
+.modal input:focus { outline: none; border-color: var(--primary); }
+.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+/* ===== 状态卡 ===== */
+.stat-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 16px; }
+.stat-card {
+  background: var(--card); padding: 14px; border-radius: var(--radius);
+  text-align: center; box-shadow: var(--shadow-sm);
+}
+.stat-card .value { font-size: 22px; font-weight: 700; color: var(--primary); }
+.stat-card .label { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+
+/* ===== 错题 ===== */
+.wrong-list { background: var(--card); border-radius: var(--radius); padding: 12px; box-shadow: var(--shadow-sm); }
+.wrong-item { padding: 10px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+.wrong-item:last-child { border-bottom: none; }
+.wrong-item:hover { color: var(--primary); }
+
+/* ===== 列表/章节复习提示 ===== */
+.section-title {
+  font-size: 14px; font-weight: 600; color: var(--text-light);
+  margin: 16px 0 8px; display: flex; align-items: center; gap: 6px;
+}
+
+/* ===== 加载/空状态 ===== */
+.empty {
+  text-align: center; padding: 40px 20px; color: var(--text-light);
+}
+.empty .icon { font-size: 48px; margin-bottom: 8px; }
+
+/* ===== 动画 ===== */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-8px); }
+  75% { transform: translateX(8px); }
+}
+.shake { animation: shake 0.3s ease-in-out; }
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+.pop { animation: pop 0.3s ease-in-out; }
+
+/* ===== 移动端适配 ===== */
+@media (max-width: 480px) {
+  .app { padding: 12px; }
+  .app-header h1 { font-size: 18px; }
+  .countdown .days { font-size: 38px; }
+  .chapter-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .chapter-card { padding: 10px 6px; }
+  .chapter-card .icon { font-size: 24px; }
+  .chapter-card .title { font-size: 11px; }
+  .question-stem { font-size: 15px; }
+  .option { padding: 10px; font-size: 13px; }
+}

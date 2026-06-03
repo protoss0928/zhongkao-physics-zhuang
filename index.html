@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#4f8cff">
+  <title>中考物理核心考点复习</title>
+  <link rel="stylesheet" href="ui/theme.css">
+</head>
+<body>
+  <div class="app">
+
+    <!-- ====== 首页（章节选择） ====== -->
+    <div id="screen-home" class="screen active">
+      <div class="app-header">
+        <h1>📚 中考物理核心考点</h1>
+        <div class="subtitle">智能复习 · 艾宾浩斯记忆曲线 · 22章全覆盖</div>
+      </div>
+
+      <!-- 倒计时 -->
+      <div class="countdown">
+        <div class="days" id="countdown-days">--</div>
+        <div class="label">距 中 考 还 有</div>
+        <div class="exam-info">考试日期：<span id="countdown-exam">2026-06-19</span></div>
+      </div>
+
+      <!-- 用户选择 -->
+      <div class="user-bar">
+        <div class="user-list" id="user-list"></div>
+      </div>
+
+      <!-- 复习入口 -->
+      <div id="review-banner" style="display:none; background: linear-gradient(135deg, #f59e0b, #ef4444); color:white; padding:14px; border-radius:12px; margin-bottom:12px; box-shadow: var(--shadow); cursor:pointer;" onclick="UI.startReview()">
+        <div style="font-size:14px; opacity:0.95;">📅 今日待复习</div>
+        <div style="font-size:22px; font-weight:700; margin-top:4px;"><span id="review-count">0</span> 道题等你巩固 →</div>
+      </div>
+
+      <!-- 统计 -->
+      <div class="stat-cards">
+        <div class="stat-card">
+          <div class="value" id="stat-total">0</div>
+          <div class="label">累计答题</div>
+        </div>
+        <div class="stat-card">
+          <div class="value" id="stat-correct">0</div>
+          <div class="label">答对题数</div>
+        </div>
+        <div class="stat-card">
+          <div class="value" id="stat-accuracy">0%</div>
+          <div class="label">正确率</div>
+        </div>
+        <div class="stat-card">
+          <div class="value" id="stat-review">0</div>
+          <div class="label">待复习</div>
+        </div>
+      </div>
+
+      <!-- 章节区 -->
+      <div class="section-title">📖 选择章节（任意点击，无需按顺序）</div>
+      <div class="chapter-grid" id="chapter-grid"></div>
+
+      <!-- 工具栏 -->
+      <div class="toolbar">
+        <div class="icon-btn-wrap"><div class="icon-btn" id="btn-wrong-book" onclick="UI.showWrongBook()">📕</div><span>错题本</span></div>
+        <div class="icon-btn-wrap"><div class="icon-btn" id="btn-audio" onclick="App.toggleAudio()">🔊</div><span>音效</span></div>
+        <div class="spacer"></div>
+        <div class="icon-btn-wrap"><div class="icon-btn" onclick="UI.exportData()">💾</div><span>备份</span></div>
+        <div class="icon-btn-wrap"><div class="icon-btn" onclick="document.getElementById('import-file').click()">📥</div><span>恢复</span></div>
+        <input type="file" id="import-file" accept=".json" style="display:none" onchange="UI.importData(this.files[0])" />
+      </div>
+    </div>
+
+    <!-- ====== 答题屏 ====== -->
+    <div id="screen-quiz" class="screen quiz-screen">
+      <div class="quiz-header">
+        <div class="quiz-progress" id="quiz-progress">1 / 1</div>
+        <div class="quiz-score" id="quiz-score">✓ 0</div>
+        <div style="font-size:12px; color:var(--text-light);" id="quiz-chapter">第1章</div>
+      </div>
+
+      <div class="question-card">
+        <div class="question-meta" id="question-meta"></div>
+        <div class="question-stem" id="question-stem"></div>
+        <div id="question-input"></div>
+        <div class="feedback" id="feedback" style="display:none;"></div>
+
+        <div class="quiz-actions">
+          <button class="btn btn-ghost" onclick="UI.show('home')">← 返回</button>
+          <div style="flex:1"></div>
+          <button class="btn btn-primary" id="btn-submit">提交答案</button>
+          <button class="btn btn-primary" id="btn-next" style="display:none;">下一题 →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 结算屏 ====== -->
+    <div id="screen-result" class="screen result-screen">
+      <div class="result-card">
+        <div class="result-icon" id="result-icon">🎉</div>
+        <div class="result-score" id="result-score">0%</div>
+        <div class="result-text" id="result-text">本关完成</div>
+        <div class="result-actions">
+          <button class="btn btn-secondary" onclick="UI.show('home')">返回首页</button>
+          <button class="btn btn-primary" onclick="location.reload()">再来一次</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ====== 错题本 ====== -->
+    <div id="screen-wrongBook" class="screen">
+      <div class="app-header" style="background: linear-gradient(135deg, #ef4444, #f59e0b);">
+        <h1>📕 错题本</h1>
+        <div class="subtitle">只属于你 · 反复巩固</div>
+      </div>
+      <div class="wrong-list" id="wrong-list"></div>
+      <div class="quiz-actions" style="margin-top:16px;">
+        <button class="btn btn-ghost" onclick="UI.show('home')">← 返回首页</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ====== 模态框 ====== -->
+  <div class="modal-overlay" id="modal-add-user">
+    <div class="modal">
+      <h3>添加新用户</h3>
+      <p>支持多用户独立记录进度。如：哥哥、弟弟、同学A 等。</p>
+      <input type="text" id="new-user-name" placeholder="输入用户名称（最多 12 字）" maxlength="12" />
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="document.getElementById('modal-add-user').classList.remove('active')">取消</button>
+        <button class="btn btn-primary" id="btn-confirm-add-user">添加</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== 脚本 ====== -->
+  <script src="core/storage.js"></script>
+  <script src="core/ebbinghaus.js"></script>
+  <script src="core/audio.js"></script>
+  <script src="core/engine.js"></script>
+  <script src="ui/components.js"></script>
+  <!-- 内联题库（兼容 file:// 协议） -->
+  <script>
+    window.__PHYSICS_DATA__ = {
+      chapters: {
+  "subject": "physics",
+  "subject_name": "上海中考物理",
+  "version": "1.0",
+  "exam_date": "2026-06-19",
+  "chapters": [
+    {
+      "idx": 1,
+      "title": "机械运动",
+      "icon": "🚗",
+      "color": "#5470c6",
+      "qcount": 4
+    },
+    {
+      "idx": 2,
+      "title": "声现象",
+      "icon": "🔊",
+      "color": "#91cc75",
+      "qcount": 3
+    },
+    {
+      "idx": 3,
+      "title": "物态变化",
+      "icon": "💧",
+      "color": "#73c0de",
+      "qcount": 4
+    },
+    {
+      "idx": 4,
+      "title": "光现象",
+      "icon": "💡",
+      "color": "#ee6666",
+      "qcount": 4
+    },
+    {
+      "idx": 5,
+      "title": "透镜及其应用",
+      "icon": "🔍",
+      "color": "#3ba272",
+      "qcount": 4
+    },
+    {
+      "idx": 6,
+      "title": "质量与密度",
+      "icon": "⚖️",
+      "color": "#fc8452",
+      "qcount": 3
+    },
+    {
+      "idx": 7,
+      "title": "力",
+      "icon": "💪",
+      "color": "#9a60b4",
+      "qcount": 3
+    },
+    {
+      "idx": 8,
+      "title": "运动和力",
+      "icon": "🏃",
+      "color": "#ea7ccc",
+      "qcount": 4
+    },
+    {
+      "idx": 9,
+      "title": "压强",
+      "icon": "🧱",
+      "color": "#5d7092",
+      "qcount": 5
+    },
+    {
+      "idx": 10,
+      "title": "浮力",
+      "icon": "🛟",
+      "color": "#6e7074",
+      "qcount": 5
+    },
+    {
+      "idx": 11,
+      "title": "功和机械能",
+      "icon": "⚙️",
+      "color": "#546570",
+      "qcount": 4
+    },
+    {
+      "idx": 12,
+      "title": "简单机械",
+      "icon": "🔧",
+      "color": "#c4ccd3",
+      "qcount": 4
+    },
+    {
+      "idx": 13,
+      "title": "热和能",
+      "icon": "🔥",
+      "color": "#f6c555",
+      "qcount": 4
+    },
+    {
+      "idx": 14,
+      "title": "内能的利用",
+      "icon": "♨️",
+      "color": "#fac858",
+      "qcount": 3
+    },
+    {
+      "idx": 15,
+      "title": "电流与电路",
+      "icon": "⚡",
+      "color": "#5ab1ef",
+      "qcount": 4
+    },
+    {
+      "idx": 16,
+      "title": "电压  电阻",
+      "icon": "🔋",
+      "color": "#ffb980",
+      "qcount": 4
+    },
+    {
+      "idx": 17,
+      "title": "欧姆定律",
+      "icon": "📐",
+      "color": "#3ba272",
+      "qcount": 5
+    },
+    {
+      "idx": 18,
+      "title": "电功率",
+      "icon": "💡",
+      "color": "#fcc36b",
+      "qcount": 5
+    },
+    {
+      "idx": 19,
+      "title": "生活用电",
+      "icon": "🏠",
+      "color": "#ee6666",
+      "qcount": 3
+    },
+    {
+      "idx": 20,
+      "title": "电与磁",
+      "icon": "🧲",
+      "color": "#73c0de",
+      "qcount": 4
+    },
+    {
+      "idx": 21,
+      "title": "信息的传递",
+      "icon": "📡",
+      "color": "#91cc75",
+      "qcount": 2
+    },
+    {
+      "idx": 22,
+      "title": "能源与可持续发展",
+      "icon": "🌱",
+      "color": "#5470c6",
+      "qcount": 2
+    }
+  ]
+},
+      questions: { questions: {
+  "version": "1.0",
+  "subject": "physics",
+  "questions": [
+    {"id": "p1-1", "chapter": 1, "type": "choice", "difficulty": 1, "stem": "小明同学用刻度尺测量一支铅笔的长度，测量结果记录为 18.20 cm。他所用的刻度尺的分度值是？", "options": ["A. 1 cm", "B. 1 mm", "C. 1 dm", "D. 1 m"], "answer": "B", "explanation": "测量结果 18.20 cm 精确到 0.01 cm（0.1 mm），分度值是 1 mm。"},
+    {"id": "p1-2", "chapter": 1, "type": "choice", "difficulty": 2, "stem": "某物体做匀速直线运动，前 5 秒通过 15 米，接下来 10 秒通过 30 米。该物体在 15 秒内的平均速度是？", "options": ["A. 2 m/s", "B. 3 m/s", "C. 4 m/s", "D. 5 m/s"], "answer": "B", "explanation": "平均速度 = 总路程/总时间 = (15+30)/(5+10) = 3 m/s。"},
+    {"id": "p1-3", "chapter": 1, "type": "fill", "difficulty": 1, "stem": "在国际单位制中，长度的单位是______，时间的单位是______。", "answer": ["米(m)", "秒(s)"], "explanation": "SI 制中长度单位米(m)，时间单位秒(s)。速度单位 m/s。"},
+    {"id": "p1-4", "chapter": 1, "type": "choice", "difficulty": 2, "stem": "下列说法正确的是？", "options": ["A. 物体运动越快，速度越大", "B. 物体通过的路程越大，速度越大", "C. 物体运动时间越短，速度越大", "D. 以上都不对"], "answer": "A", "explanation": "速度 = 路程/时间，必须看路程与时间的比值，不能只看单一量。"},
+
+    {"id": "p2-1", "chapter": 2, "type": "choice", "difficulty": 2, "stem": "人们通常通过声音的哪个特征来区分男声和女声？", "options": ["A. 响度", "B. 音调", "C. 音色", "D. 频率"], "answer": "B", "explanation": "男声音调低，女声音调高，由声带振动频率决定。音色区分不同人，响度表示大小。"},
+    {"id": "p2-2", "chapter": 2, "type": "fill", "difficulty": 2, "stem": "声音是由物体______产生的。声音在空气中（15℃）传播的速度约为______m/s。", "answer": ["振动", "340"], "explanation": "声音由振动产生。15℃空气中的声速约 340 m/s。"},
+    {"id": "p2-3", "chapter": 2, "type": "choice", "difficulty": 2, "stem": "下列关于噪声控制的措施中，属于在声源处减弱的是？", "options": ["A. 城市道路旁安装隔音板", "B. 机场工作人员佩戴耳罩", "C. 摩托车发动机加装消声器", "D. 学校周围植树造林"], "answer": "C", "explanation": "消声器在声源处减弱；隔音板在传播过程中减弱；耳罩在人耳处减弱。"},
+
+    {"id": "p3-1", "chapter": 3, "type": "fill", "difficulty": 2, "stem": "物质存在的三种状态是固态、液态和______态。在标准大气压下，水的沸点是______℃。", "answer": ["气", "100"], "explanation": "物质三态：固、液、气。标准大气压下水的沸点 100℃。"},
+    {"id": "p3-2", "chapter": 3, "type": "choice", "difficulty": 2, "stem": "下列现象中，属于熔化的是？", "options": ["A. 冰雪消融", "B. 露珠形成", "C. 雾凇出现", "D. 干冰升华"], "answer": "A", "explanation": "固→液为熔化，A 正确；B 气→液为液化；C 气→固为凝华；D 固→气为升华。"},
+    {"id": "p3-3", "chapter": 3, "type": "choice", "difficulty": 3, "stem": "关于蒸发和沸腾，下列说法正确的是？", "options": ["A. 蒸发只在沸点发生", "B. 沸腾只在液面进行", "C. 蒸发和沸腾都要吸热", "D. 蒸发比沸腾剧烈得多"], "answer": "C", "explanation": "A 错，蒸发在任何温度下都能发生；B 错，沸腾在液体内部和表面同时发生；C 正确；D 错，沸腾更剧烈。"},
+    {"id": "p3-4", "chapter": 3, "type": "fill", "difficulty": 2, "stem": "晶体熔化时______热但温度______（选填：吸/放，升高/不变/降低）。", "answer": ["吸", "不变"], "explanation": "晶体熔化时持续吸热但温度保持熔点不变。"},
+
+    {"id": "p4-1", "chapter": 4, "type": "choice", "difficulty": 2, "stem": "下列现象中，属于光的反射形成的是？", "options": ["A. 雨后彩虹", "B. 平面镜中看到自己", "C. 海市蜃楼", "D. 铅笔在水中变弯"], "answer": "B", "explanation": "平面镜成像是反射；彩虹是色散；海市蜃楼和铅笔变弯是折射。"},
+    {"id": "p4-2", "chapter": 4, "type": "choice", "difficulty": 2, "stem": "光在同种均匀介质中传播时，下列说法正确的是？", "options": ["A. 沿直线传播", "B. 速度不变", "C. 方向不变", "D. 都能发生反射"], "answer": "A", "explanation": "光在同种均匀介质中沿直线传播（实验规律）。"},
+    {"id": "p4-3", "chapter": 4, "type": "fill", "difficulty": 1, "stem": "光在真空中的传播速度约为______m/s。", "answer": ["3×10⁸"], "explanation": "光速 c = 3×10⁸ m/s，是自然界最快的速度。"},
+    {"id": "p4-4", "chapter": 4, "type": "choice", "difficulty": 3, "stem": "一束光从空气斜射入水中时，下列说法正确的是？", "options": ["A. 反射角大于入射角", "B. 折射角大于入射角", "C. 折射光线靠近法线", "D. 光速变大"], "answer": "C", "explanation": "光从空气斜射入水中时，折射角小于入射角，折射光线靠近法线，光速变小。"},
+
+    {"id": "p5-1", "chapter": 5, "type": "choice", "difficulty": 2, "stem": "下列光学仪器中，利用凸透镜成倒立、缩小实像的是？", "options": ["A. 放大镜", "B. 投影仪", "C. 照相机", "D. 显微镜"], "answer": "C", "explanation": "照相机：u>2f，成倒立缩小实像；投影仪 f<u<2f；放大镜 u<f。"},
+    {"id": "p5-2", "chapter": 5, "type": "fill", "difficulty": 2, "stem": "凸透镜对光有______作用，凹透镜对光有______作用。", "answer": ["会聚", "发散"], "explanation": "凸透镜会聚，凹透镜发散，这是透镜对光的基本作用。"},
+    {"id": "p5-3", "chapter": 5, "type": "choice", "difficulty": 3, "stem": "老花镜的镜片是？", "options": ["A. 凸透镜", "B. 凹透镜", "C. 平面镜", "D. 三棱镜"], "answer": "A", "explanation": "老花眼是近物看不清，用凸透镜矫正。"},
+    {"id": "p5-4", "chapter": 5, "type": "fill", "difficulty": 3, "stem": "显微镜的目镜和物镜都是______镜（选填：凸/凹），被观察的物体应放在物镜的______（一倍焦距内/外但两倍焦距内/两倍焦距外）。", "answer": ["凸", "一倍焦距外但两倍焦距内"], "explanation": "显微镜物镜成倒立放大实像，物体在 f<u<2f 之间；目镜成正立放大虚像，u'<f。"},
+
+    {"id": "p6-1", "chapter": 6, "type": "choice", "difficulty": 2, "stem": "下列说法正确的是？", "options": ["A. 质量大的物体密度大", "B. 体积大的物体密度小", "C. 同种物质的质量与体积的比值相同", "D. 物质密度与温度无关"], "answer": "C", "explanation": "密度是物质本身属性，与 m、V 无关；同种物质 ρ 相同。"},
+    {"id": "p6-2", "chapter": 6, "type": "fill", "difficulty": 2, "stem": "水的密度是______kg/m³，合______g/cm³。", "answer": ["1.0×10³", "1.0"], "explanation": "ρ水 = 1.0×10³ kg/m³ = 1.0 g/cm³。"},
+    {"id": "p6-3", "chapter": 6, "type": "choice", "difficulty": 3, "stem": "一个瓶子装满水时质量 500 g，装满酒精时质量 440 g。已知 ρ水=1.0 g/cm³，ρ酒精=0.8 g/cm³。瓶子的容积是？", "options": ["A. 200 cm³", "B. 250 cm³", "C. 300 cm³", "D. 400 cm³"], "answer": "C", "explanation": "设瓶子质量 m，容积 V。m+1.0V=500, m+0.8V=440 → 0.2V=60 → V=300 cm³。"},
+
+    {"id": "p7-1", "chapter": 7, "type": "choice", "difficulty": 1, "stem": "下列物体所受重力约为 1 N 的是？", "options": ["A. 一枚一元硬币", "B. 一本物理课本", "C. 一个鸡蛋", "D. 一只鸡"], "answer": "C", "explanation": "1 N ≈ 100 g 物体的重力。鸡蛋约 50g，但选 1N 最接近，物理课本题量。"},
+    {"id": "p7-2", "chapter": 7, "type": "fill", "difficulty": 1, "stem": "物体所受重力的大小与它的______成正比，比例系数 g 在地球表面约为______N/kg。", "answer": ["质量", "9.8"], "explanation": "G = mg，g ≈ 9.8 N/kg（粗算 10 N/kg）。"},
+    {"id": "p7-3", "chapter": 7, "type": "choice", "difficulty": 2, "stem": "下列关于重力的说法错误的是？", "options": ["A. 重力的方向竖直向下", "B. 重力的施力物体是地球", "C. 重心一定在物体上", "D. 重力的大小可以用弹簧测力计测量"], "answer": "C", "explanation": "重心可以在物体上也可以在物体外（如圆环）。"},
+
+    {"id": "p8-1", "chapter": 8, "type": "choice", "difficulty": 2, "stem": "下列现象中，属于惯性的是？", "options": ["A. 静止的物体保持静止", "B. 运动的物体保持运动", "C. 急刹车时乘客向前倾", "D. 以上都是"], "answer": "D", "explanation": "惯性是物体保持原来运动状态的性质，ABC 都是。"},
+    {"id": "p8-2", "chapter": 8, "type": "fill", "difficulty": 2, "stem": "牛顿第一定律的内容是：一切物体在没有受到外力作用时，总保持______状态或______状态。", "answer": ["静止", "匀速直线运动"], "explanation": "牛顿第一定律（惯性定律）：不受力时保持静止或匀速直线运动。"},
+    {"id": "p8-3", "chapter": 8, "type": "choice", "difficulty": 3, "stem": "一物体在水平面上做匀速直线运动，受到的拉力 F=10 N，方向水平。则物体受到的摩擦力大小是？", "options": ["A. 0", "B. 5 N", "C. 10 N", "D. 20 N"], "answer": "C", "explanation": "匀速直线运动，水平方向二力平衡，f = F = 10 N。"},
+    {"id": "p8-4", "chapter": 8, "type": "fill", "difficulty": 3, "stem": "两个互相接触的物体，当它们发生相对运动或具有相对运动趋势时，在接触面上产生一种______的力叫做摩擦力。", "answer": ["阻碍相对运动"], "explanation": "摩擦力方向总与相对运动（或趋势）方向相反。"},
+
+    {"id": "p9-1", "chapter": 9, "type": "choice", "difficulty": 3, "stem": "边长 10 cm 的正方体铁块放在水平桌面，ρ铁=7.9×10³ kg/m³，g=10 N/kg。铁块对桌面的压强是？", "options": ["A. 790 Pa", "B. 7900 Pa", "C. 79 Pa", "D. 79000 Pa"], "answer": "B", "explanation": "V=0.001 m³, m=7.9 kg, F=79 N, S=0.01 m², p=F/S=7900 Pa。"},
+    {"id": "p9-2", "chapter": 9, "type": "fill", "difficulty": 2, "stem": "压强是表示______的物理量。在压力一定时，增大______可以减小压强。", "answer": ["压力作用效果", "受力面积"], "explanation": "p = F/S，受力面积越大压强越小。"},
+    {"id": "p9-3", "chapter": 9, "type": "choice", "difficulty": 2, "stem": "下列事例中，属于增大压强的是？", "options": ["A. 书包带做得较宽", "B. 篆刻刀的刀口很薄", "C. 铁轨下铺枕木", "D. 推土机用宽履带"], "answer": "B", "explanation": "A/C/D 都在增大受力面积以减小压强；B 减小受力面积增大压强。"},
+    {"id": "p9-4", "chapter": 9, "type": "choice", "difficulty": 3, "stem": "在连通器中装入同种液体，液体静止时各容器中的液面______。", "options": ["A. 一定相平", "B. 一定不相平", "C. 上端开口的相平", "D. 装液多的高"], "answer": "C", "explanation": "连通器原理：同种液体不流动时，**上端开口**的容器液面相平。"},
+    {"id": "p9-5", "chapter": 9, "type": "fill", "difficulty": 3, "stem": "大气压强随海拔高度的增加而______（选填：增大/减小/不变），液体的沸点随气压的增大而______。", "answer": ["减小", "升高"], "explanation": "高海拔气压低；气压低沸点低（高压锅原理）。"},
+
+    {"id": "p10-1", "chapter": 10, "type": "choice", "difficulty": 2, "stem": "关于浮力，下列说法正确的是？", "options": ["A. 浮力的大小等于物体的重力", "B. 浸在液体中的物体一定受到浮力", "C. 浮力的方向竖直向上", "D. 物体的体积越大浮力越大"], "answer": "C", "explanation": "A 错（只有悬浮才相等）；B 错（如压在容器底部的物体可能不受浮力）；C 正确；D 错，浮力由 V排 决定。"},
+    {"id": "p10-2", "chapter": 10, "type": "fill", "difficulty": 2, "stem": "浸在液体中的物体所受浮力的大小等于它排开的液体所受的重力，这就是著名的______原理。", "answer": ["阿基米德"], "explanation": "F浮 = G排 = ρ液 g V排。"},
+    {"id": "p10-3", "chapter": 10, "type": "choice", "difficulty": 3, "stem": "体积相同的实心铁球和铝球浸没在水中静止时，所受浮力？", "options": ["A. 铁球大", "B. 铝球大", "C. 一样大", "D. 都不对"], "answer": "C", "explanation": "F浮 = ρ水 g V排，V排 相同 → 浮力相同，与材质无关。"},
+    {"id": "p10-4", "chapter": 10, "type": "fill", "difficulty": 3, "stem": "潜水艇是靠改变______实现上浮和下沉的，气球和飞艇是靠改变______实现升降的。", "answer": ["自身重力(通过水舱进水排水)", "浮力(通过充放气体改变体积)"], "explanation": "潜水艇排开液体体积不变，靠改变重力；热气球靠改变浮力。"},
+    {"id": "p10-5", "chapter": 10, "type": "choice", "difficulty": 3, "stem": "一木块体积 100 cm³，密度 0.6×10³ kg/m³。浸没在水中静止时，受到的浮力是？(g=10 N/kg)", "options": ["A. 0.6 N", "B. 1.0 N", "C. 6 N", "D. 10 N"], "answer": "B", "explanation": "F浮 = ρ水 g V排 = 1000×10×100×10⁻⁶ = 1.0 N。"},
+
+    {"id": "p11-1", "chapter": 11, "type": "choice", "difficulty": 2, "stem": "下列过程中，属于机械能转化为内能的是？", "options": ["A. 火箭升空", "B. 摩擦生热", "C. 水电站发电", "D. 太阳能电池充电"], "answer": "B", "explanation": "摩擦时机械能→内能。A 重力势能→动能+内能；C 机械能→电能。"},
+    {"id": "p11-2", "chapter": 11, "type": "fill", "difficulty": 2, "stem": "做功的两个必要因素是：作用在物体上的______和物体在______方向上通过的距离。", "answer": ["力", "力的"], "explanation": "W = Fs 中，s 必须在 F 方向上有分量。"},
+    {"id": "p11-3", "chapter": 11, "type": "choice", "difficulty": 3, "stem": "功率是表示做功______的物理量，自行车运动员 5 秒内做了 1500 J 的功，功率是？", "options": ["A. 300 W", "B. 750 W", "C. 3000 W", "D. 7500 W"], "answer": "A", "explanation": "P = W/t = 1500/5 = 300 W。"},
+    {"id": "p11-4", "chapter": 11, "type": "fill", "difficulty": 2, "stem": "动能的大小与物体的______和______有关，重力势能的大小与物体的______和______有关。", "answer": ["质量", "速度", "质量", "高度"], "explanation": "E动 = ½mv²，E势 = mgh。"},
+
+    {"id": "p12-1", "chapter": 12, "type": "choice", "difficulty": 2, "stem": "用杠杆撬重物，已知动力臂是阻力臂的 2 倍，则动力是阻力的？", "options": ["A. 2 倍", "B. 1/2", "C. 相等", "D. 4 倍"], "answer": "B", "explanation": "F1×L1 = F2×L2，L1=2L2 → F1 = F2/2。"},
+    {"id": "p12-2", "chapter": 12, "type": "fill", "difficulty": 2, "stem": "定滑轮实质上是一个______杠杆，使用定滑轮可以______（选填：省力/改变方向/省距离）。", "answer": ["等臂", "改变方向"], "explanation": "定滑轮不省力但改变方向。动滑轮省一半力。"},
+    {"id": "p12-3", "chapter": 12, "type": "choice", "difficulty": 3, "stem": "用动滑轮将 100 N 的物体匀速提升 2 m，所用拉力为 60 N（不计绳重和摩擦），动滑轮的机械效率是？", "options": ["A. 60%", "B. 83.3%", "C. 100%", "D. 120%"], "answer": "B", "explanation": "W有 = 100×2 = 200 J, W总 = 60×4 = 240 J（动滑轮绳子端拉 4 m），η = 200/240 = 83.3%。"},
+    {"id": "p12-4", "chapter": 12, "type": "fill", "difficulty": 2, "stem": "使用机械时，______功与______功的比值叫做机械效率。", "answer": ["有用", "总"], "explanation": "η = W有用/W总，机械效率总小于 1。"},
+
+    {"id": "p13-1", "chapter": 13, "type": "choice", "difficulty": 2, "stem": "下列事例中，属于做功改变物体内能的是？", "options": ["A. 冬天用热水袋取暖", "B. 钻木取火", "C. 太阳照射使地面变热", "D. 烧红的铁块放入水中"], "answer": "B", "explanation": "B 克服摩擦做功→内能；A/D 是热传递；C 是热传递。"},
+    {"id": "p13-2", "chapter": 13, "type": "fill", "difficulty": 1, "stem": "构成物质的大量分子在做______的运动，温度越高，分子运动越______。", "answer": ["永不停息地无规则", "剧烈"], "explanation": "分子热运动，温度是分子平均动能的标志。"},
+    {"id": "p13-3", "chapter": 13, "type": "choice", "difficulty": 3, "stem": "关于比热容，下列说法正确的是？", "options": ["A. 比热容大的物体吸热多", "B. 比热容是物质本身属性，与质量无关", "C. 比热容与温度变化有关", "D. 不同物质比热容一定不同"], "answer": "B", "explanation": "A 还要看 m 和 Δt；B 正确；C 错；D 错（也有相同的，如煤油和冰）。"},
+    {"id": "p13-4", "chapter": 13, "type": "fill", "difficulty": 2, "stem": "水的比热容是 4.2×10³ J/(kg·℃)，它的物理意义是：质量为 1 kg 的水温度升高 1℃所吸收的热量为______J。", "answer": ["4.2×10³"], "explanation": "Q = cmΔt = 4.2×10³×1×1 = 4.2×10³ J。"},
+
+    {"id": "p14-1", "chapter": 14, "type": "choice", "difficulty": 2, "stem": "四冲程汽油机的一个工作循环中，做功冲程是？", "options": ["A. 第一冲程", "B. 第二冲程", "C. 第三冲程", "D. 第四冲程"], "answer": "C", "explanation": "吸气-压缩-做功-排气。第三冲程（做功）将内能→机械能。"},
+    {"id": "p14-2", "chapter": 14, "type": "fill", "difficulty": 2, "stem": "燃料燃烧时将______能转化为______能。", "answer": ["化学", "内(热)"], "explanation": "燃料的化学能在燃烧时转化为内能。"},
+    {"id": "p14-3", "chapter": 14, "type": "choice", "difficulty": 3, "stem": "关于内能，下列说法正确的是？", "options": ["A. 0℃的物体没有内能", "B. 温度高的物体内能一定大", "C. 物体内能增加，温度一定升高", "D. 同一物体温度升高，内能一定增加"], "answer": "D", "explanation": "A 错（任何温度下物体都有内能）；B 错（还要看质量、状态）；C 错（晶体熔化吸热内能增但温度不变）；D 正确。"},
+
+    {"id": "p15-1", "chapter": 15, "type": "choice", "difficulty": 2, "stem": "下列物质中，属于绝缘体的是？", "options": ["A. 铜", "B. 铝", "C. 橡胶", "D. 食盐水"], "answer": "C", "explanation": "铜/铝是导体；食盐水是导体；橡胶是绝缘体。"},
+    {"id": "p15-2", "chapter": 15, "type": "fill", "difficulty": 1, "stem": "电路的基本连接方式有______联和______联两种。", "answer": ["串", "并"], "explanation": "串联和并联是两种基本连接方式。"},
+    {"id": "p15-3", "chapter": 15, "type": "choice", "difficulty": 3, "stem": "两电阻 R₁=10Ω, R₂=20Ω 串联后接在电路中，通过 R₁ 的电流为 0.5 A，则 R₂ 两端的电压是？", "options": ["A. 5 V", "B. 10 V", "C. 15 V", "D. 20 V"], "answer": "B", "explanation": "串联 I 相同，U₂ = IR₂ = 0.5×20 = 10 V。"},
+    {"id": "p15-4", "chapter": 15, "type": "fill", "difficulty": 2, "stem": "电流通过导体时产生的热量与电流的平方成正比、与导体的电阻成正比、与通电时间成正比，这就是______定律。", "answer": ["焦耳"], "explanation": "Q = I²Rt，焦耳定律。"},
+
+    {"id": "p16-1", "chapter": 16, "type": "choice", "difficulty": 2, "stem": "关于电压，下列说法正确的是？", "options": ["A. 电压是形成电流的原因", "B. 电压的单位是安培", "C. 电路两端有电压就一定有电流", "D. 电压的大小与电流成正比"], "answer": "A", "explanation": "A 正确；B 错（单位是伏特）；C 错（还要电路闭合）；D 错（U=I×R）。"},
+    {"id": "p16-2", "chapter": 16, "type": "fill", "difficulty": 1, "stem": "一节干电池的电压是______V，家庭电路的电压是______V。", "answer": ["1.5", "220"], "explanation": "一节干电池 1.5V，家庭电路 220V。"},
+    {"id": "p16-3", "chapter": 16, "type": "choice", "difficulty": 3, "stem": "关于电阻，下列说法错误的是？", "options": ["A. 导体的电阻是导体本身的一种性质", "B. 导体的电阻跟导体的长度、横截面积有关", "C. 导体的电阻跟导体的材料有关", "D. 导体的电阻跟通过它的电流大小有关"], "answer": "D", "explanation": "A/B/C 正确；D 错（电阻是导体属性，与电流电压无关）。"},
+    {"id": "p16-4", "chapter": 16, "type": "fill", "difficulty": 2, "stem": "滑动变阻器是通过改变接入电路中电阻丝的______来改变电阻的。", "answer": ["长度"], "explanation": "滑动变阻器通过改变接入电路的电阻丝长度改变电阻。"},
+
+    {"id": "p17-1", "chapter": 17, "type": "choice", "difficulty": 3, "stem": "「伏安法测电阻」实验，电源 6 V，电压表读数 2.4 V，电流表读数 0.3 A。该电阻的阻值是？", "options": ["A. 0.8 Ω", "B. 8 Ω", "C. 80 Ω", "D. 800 Ω"], "answer": "B", "explanation": "R = U/I = 2.4/0.3 = 8 Ω。"},
+    {"id": "p17-2", "chapter": 17, "type": "fill", "difficulty": 2, "stem": "欧姆定律的内容是：导体中的电流跟导体两端的电压成______，跟导体的电阻成______。", "answer": ["正比", "反比"], "explanation": "I = U/R，I 与 U 成正比，与 R 成反比。"},
+    {"id": "p17-3", "chapter": 17, "type": "choice", "difficulty": 3, "stem": "两个电阻 R₁=6Ω, R₂=12Ω 并联，总电阻是？", "options": ["A. 4 Ω", "B. 9 Ω", "C. 18 Ω", "D. 0.17 Ω"], "answer": "A", "explanation": "1/R = 1/6 + 1/12 = 3/12 = 1/4，R = 4 Ω。"},
+    {"id": "p17-4", "chapter": 17, "type": "fill", "difficulty": 2, "stem": "测量小灯泡的电阻时，灯泡两端的电压越高，测得的电阻越______，这是因为灯丝电阻随温度升高而______。", "answer": ["大", "增大"], "explanation": "金属电阻随温度升高而增大。"},
+    {"id": "p17-5", "chapter": 17, "type": "choice", "difficulty": 3, "stem": "一段电阻丝接入 6V 电路时电流为 0.3A，若将其对折后接入相同电路，电流变为？", "options": ["A. 0.15 A", "B. 0.3 A", "C. 0.6 A", "D. 1.2 A"], "answer": "C", "explanation": "原 R = U/I = 6/0.3 = 20 Ω。对折后长度减半、横截面积加倍，电阻减半为 10 Ω。新电流 I' = 6/10 = 0.6 A。"},
+
+    {"id": "p18-1", "chapter": 18, "type": "fill", "difficulty": 3, "stem": "一只标有 'PZ220-100' 的灯泡，接在 110 V 电路中，其实际功率为______W。（假设灯丝电阻不变）", "answer": ["25"], "explanation": "R = U²/P = 220²/100 = 484 Ω，P' = U'²/R = 110²/484 = 25 W。"},
+    {"id": "p18-2", "chapter": 18, "type": "choice", "difficulty": 2, "stem": "电功率的定义式是？", "options": ["A. P=UI", "B. P=I²R", "C. P=U²/R", "D. A 和 B 都对"], "answer": "A", "explanation": "P=UI 是定义式（普遍适用）；B/C 是推导式（仅适用于纯电阻）。"},
+    {"id": "p18-3", "chapter": 18, "type": "fill", "difficulty": 2, "stem": "电能表是测量______的仪表，1 度 = ______kW·h = ______J。", "answer": ["消耗电能(电功)", "1", "3.6×10⁶"], "explanation": "1 度 = 1 kW·h = 1000W×3600s = 3.6×10⁶ J。"},
+    {"id": "p18-4", "chapter": 18, "type": "choice", "difficulty": 3, "stem": "某电热水器通过 2A 电流工作 30 分钟，电阻 22Ω，消耗的电能是？", "options": ["A. 0.022 kW·h", "B. 0.044 kW·h", "C. 0.088 kW·h", "D. 0.264 kW·h"], "answer": "B", "explanation": "P = I²R = 2²×22 = 88 W = 0.088 kW；t = 30 min = 0.5 h；W = Pt = 0.088×0.5 = 0.044 kW·h。"},
+    {"id": "p18-5", "chapter": 18, "type": "fill", "difficulty": 2, "stem": "焦耳定律的公式是 Q=______，单位都是国际单位制时不需要换算。", "answer": ["I²Rt"], "explanation": "焦耳定律：Q = I²Rt，电流通过导体产生的热量。"},
+
+    {"id": "p19-1", "chapter": 19, "type": "choice", "difficulty": 2, "stem": "家庭电路中，各用电器之间是______联，开关与用电器是______联。", "options": ["A. 串，并", "B. 并，串", "C. 并，并", "D. 串，串"], "answer": "B", "explanation": "家用电器并联才能独立工作；开关与用电器串联才能控制。"},
+    {"id": "p19-2", "chapter": 19, "type": "fill", "difficulty": 2, "stem": "家庭电路中，插座与灯泡是______联（选填：串/并），三孔插座比两孔插座多一个______孔。", "answer": ["并", "接地"], "explanation": "插座与用电器并联；第三个孔接地线，防触电。"},
+    {"id": "p19-3", "chapter": 19, "type": "choice", "difficulty": 3, "stem": "关于安全用电，下列做法正确的是？", "options": ["A. 用湿手插电源插头", "B. 多个大功率电器共用一个插座", "C. 绝缘皮破损的导线仍可使用", "D. 发现有人触电应先切断电源"], "answer": "D", "explanation": "A 触电危险；B 电流过大会跳闸甚至起火；C 漏电；D 是正确急救。"},
+
+    {"id": "p20-1", "chapter": 20, "type": "choice", "difficulty": 2, "stem": "通电直导线周围存在磁场，磁场方向与______有关。", "options": ["A. 电流大小", "B. 电流方向", "C. 导线粗细", "D. 导线材料"], "answer": "B", "explanation": "奥斯特实验：电流方向决定磁场方向（用右手定则）。"},
+    {"id": "p20-2", "chapter": 20, "type": "fill", "difficulty": 1, "stem": "磁体周围存在______，磁体间的相互作用是通过______发生的。", "answer": ["磁场", "磁场"], "explanation": "磁场是看不见的特殊物质，磁体间作用通过磁场。"},
+    {"id": "p20-3", "chapter": 20, "type": "choice", "difficulty": 3, "stem": "电磁铁的铁芯应该用？", "options": ["A. 钢", "B. 铁", "C. 软铁", "D. 都可以"], "answer": "C", "explanation": "软铁磁化后易退磁，适合做电磁铁；钢磁化后不易退磁，适合做永磁体。"},
+    {"id": "p20-4", "chapter": 20, "type": "fill", "difficulty": 2, "stem": "发电机是根据______原理制成的，电动机是根据______原理制成的。", "answer": ["电磁感应", "通电导体在磁场中受力"], "explanation": "发电机：机械能→电能（电磁感应）；电动机：电能→机械能（通电受力）。"},
+
+    {"id": "p21-1", "chapter": 21, "type": "choice", "difficulty": 2, "stem": "电磁波在真空中的传播速度是？", "options": ["A. 340 m/s", "B. 3×10⁵ km/s", "C. 3×10⁸ m/s", "D. 声音的 1000 倍"], "answer": "C", "explanation": "电磁波在真空中速度 = 光速 = 3×10⁸ m/s。"},
+    {"id": "p21-2", "chapter": 21, "type": "fill", "difficulty": 2, "stem": "电磁波是一个大家族，包括无线电波、______、可见光、______、X射线、γ射线等。", "answer": ["红外线", "紫外线"], "explanation": "电磁波谱按频率从低到高：无线电波、红外线、可见光、紫外线、X射线、γ射线。"},
+
+    {"id": "p22-1", "chapter": 22, "type": "choice", "difficulty": 2, "stem": "下列能源中，属于可再生能源的是？", "options": ["A. 煤", "B. 石油", "C. 太阳能", "D. 天然气"], "answer": "C", "explanation": "煤、石油、天然气是化石能源（不可再生）；太阳能、风能、水能是可再生。"},
+    {"id": "p22-2", "chapter": 22, "type": "fill", "difficulty": 2, "stem": "核电站是利用原子核______变释放的能量来发电的，太阳能是______能源（选填：可再生/不可再生）。", "answer": ["裂", "可再生"], "explanation": "核电站用核裂变；太阳能来自太阳，可再生。"}
+  ]
+}
+ }
+    };
+  </script>
+  <script>
+    // ====== 启动 ======
+    const App = {
+      toggleAudio: function () {
+        const on = AudioMgr.toggle();
+        document.getElementById('btn-audio').textContent = on ? '🔊' : '🔇';
+        document.getElementById('btn-audio').classList.toggle('off', !on);
+      }
+    };
+
+    (async function init() {
+      AudioMgr.init();
+      // 同步音效按钮状态
+      if (!AudioMgr.isEnabled()) {
+        document.getElementById('btn-audio').textContent = '🔇';
+        document.getElementById('btn-audio').classList.add('off');
+      }
+
+      // 默认设置：考试日期 + 当前科目
+      let s = await Storage.getSettings();
+      if (!s) s = {};
+      if (!s.examDate) s.examDate = '2026-06-19';
+      if (!s.subject) s.subject = 'physics';
+      await Storage.saveSettings(s);
+
+      // 首次启动自动建一个默认用户
+      let users = await Storage.listUsers();
+      if (users.length === 0) {
+        await Storage.saveUser({
+          id: 'u_default',
+          name: '同学A',
+          avatar: '👤',
+          createdAt: Date.now()
+        });
+        users = await Storage.listUsers();
+      }
+      if (!s.currentUserId) s.currentUserId = users[0].id;
+      await Storage.saveSettings(s);
+
+      // 模态框按钮
+      document.getElementById('btn-confirm-add-user').onclick = () => {
+        const name = document.getElementById('new-user-name').value;
+        UI._addUser(name);
+      };
+      document.getElementById('new-user-name').onkeypress = (e) => {
+        if (e.key === 'Enter') document.getElementById('btn-confirm-add-user').click();
+      };
+
+      // 渲染首页
+      await UI.renderHome();
+
+      // 第一次点击解锁 AudioContext
+      document.body.addEventListener('click', () => AudioMgr._ensureContext(), { once: true });
+    })();
+  </script>
+</body>
+</html>

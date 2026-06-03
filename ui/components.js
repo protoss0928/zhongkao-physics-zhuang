@@ -104,6 +104,12 @@
         }
       }
 
+      // 先建索引（for 循环里要用）
+      window.__CHAPTERS_INDEX__ = {};
+      for (const c of data.chapters) {
+        window.__CHAPTERS_INDEX__[c.idx] = c;
+      }
+
       for (const c of data.chapters) {
         const card = document.createElement('div');
         card.className = 'chapter-card';
@@ -118,11 +124,8 @@
           ${isComplete ? '<span class="badge">✓ 已掌握</span>' : ''}
           <div class="progress"><div class="bar" style="width:${progress}%"></div></div>
         `;
-        card.addEventListener('click', (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          this.startChapter(c);
-        });
+        // 用内联 onclick（不用 addEventListener，避免事件冒泡/模拟点击问题）
+        card.setAttribute('onclick', `UI.startChapter(window.__CHAPTERS_INDEX__[${c.idx}])`);
         grid.appendChild(card);
       }
     },

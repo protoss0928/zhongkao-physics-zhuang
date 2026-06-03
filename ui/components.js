@@ -170,8 +170,9 @@
 
       // 取章节题（优先用内联数据，兼容 file:// 协议）
       let data = window.__PHYSICS_DATA__ || await (await fetch('data/physics/questions.json')).json();
-      // 兼容两种结构
-      if (data.questions && !Array.isArray(data.questions)) data = data.questions;
+      // 兼容 2 种内联结构：__PHYSICS_DATA__.questions 可能是数组 / {questions: [...]} / {questions: {questions: [...]}}
+      // 剥到 questions 是数组为止
+      while (data.questions && !Array.isArray(data.questions)) data = data.questions;
       const allQs = data.questions.filter((q) => q.chapter === chapter.idx);
       if (allQs.length === 0) {
         alert('该章节暂无题目');
@@ -367,7 +368,7 @@
       }
       // 拿题目（优先用内联数据，兼容 file:// 协议）
       let data = window.__PHYSICS_DATA__ || await (await fetch('data/physics/questions.json')).json();
-      if (data.questions && !Array.isArray(data.questions)) data = data.questions;
+      while (data.questions && !Array.isArray(data.questions)) data = data.questions;
       const qMap = new Map(data.questions.map((q) => [q.id, q]));
       const reviewQs = due.map((a) => qMap.get(a.questionId)).filter(Boolean);
       if (reviewQs.length === 0) {
@@ -397,7 +398,8 @@
       const answers = await Storage.listAnswers(this.state.currentUser.id);
       const wrong = Ebbinghaus.filterWrong(answers);
       const resp = await fetch('data/physics/questions.json');
-      const data = await resp.json();
+      let data = await resp.json();
+      while (data.questions && !Array.isArray(data.questions)) data = data.questions;
       const qMap = new Map(data.questions.map((q) => [q.id, q]));
       const list = document.getElementById('wrong-list');
       list.innerHTML = '';
